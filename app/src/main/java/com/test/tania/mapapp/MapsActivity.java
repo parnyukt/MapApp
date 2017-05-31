@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -36,7 +35,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         MapApp.getAppComponent().inject(this);
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -53,17 +51,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void addMarkersToMap() {
-        //todo: markers from api
         final List<Place> placesList = new ArrayList<>();
         mapApi.placesList().enqueue(new Callback<List<Place>>() {
             @Override
             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-                placesList.addAll(response.body());
+                if (response.body() == null) return;
 
-                // Add a marker in Sydney and move the camera
-                LatLng sydney = new LatLng(-34, 151);
-                mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+                placesList.addAll(response.body());
+                showMarkers(placesList);
             }
 
             @Override
@@ -71,8 +66,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.i(getClass().getSimpleName(), "issue");
             }
         });
-
-
-
     }
+
+    private void showMarkers(List<Place> places) {
+        for (Place place : places) {
+            addMarker(place);
+        }
+    }
+
+    private void addMarker(Place place) {
+        LatLng sydney = new LatLng(place.lat, place.lng);
+        mMap.addMarker(new MarkerOptions().position(sydney).title(place.title));
+    }
+
 }
