@@ -28,13 +28,14 @@ import retrofit2.Response;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleMap.OnMarkerClickListener,
-        GoogleMap.OnInfoWindowCloseListener {
+        GoogleMap.OnMapClickListener {
 
     @Inject
     IMapApi mapApi;
 
     private GoogleMap mMap;
     private Snackbar placeDetailsPanel;
+    private Marker mSelectedMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +48,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        mapFragment.setRetainInstance(true);
         mapFragment.getMapAsync(this);
-
     }
 
 
@@ -63,7 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter());
 
         mMap.setOnMarkerClickListener(this);
-        mMap.setOnInfoWindowCloseListener(this);
+        mMap.setOnMapClickListener(this);
     }
 
     public void addMarkersToMap() {
@@ -98,14 +99,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        placeDetailsPanel.setText(marker.getSnippet());
-        placeDetailsPanel.show();
-
+        if (!marker.equals(mSelectedMarker)) {
+            mSelectedMarker = marker;
+            placeDetailsPanel.setText(marker.getSnippet());
+            placeDetailsPanel.show();
+        }
         return false;
     }
 
     @Override
-    public void onInfoWindowClose(Marker marker) {
+    public void onMapClick(LatLng latLng) {
+        mSelectedMarker = null;
         placeDetailsPanel.dismiss();
     }
 
